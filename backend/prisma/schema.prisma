@@ -1,0 +1,53 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model Customer {
+  id        String   @id @default(uuid())
+  name      String
+  email     String   @unique
+  document  String   @unique
+  phone     String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  Charge    Charge[]
+}
+
+model Charge {
+  id             String        @id @default(uuid())
+  amount         Float
+  currency       String        @default("BRL")
+  paymentMethod  PaymentMethod
+  status         PaymentStatus @default(PENDING)
+  customerId     String
+  customer       Customer      @relation(fields: [customerId], references: [id])
+  dueDate        DateTime?
+  installments   Int?
+  idempotencyKey String        @unique //  campo para armazenar o idempotencyKey
+  createdAt      DateTime      @default(now())
+  updatedAt      DateTime      @updatedAt
+}
+
+enum PaymentMethod {
+  PIX
+  CREDIT_CARD
+  BOLETO
+}
+
+enum PaymentStatus {
+  PENDING
+  PAID
+  FAILED
+  EXPIRED
+}
